@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+<head>
+<script>
+
+function TODO(container){
+	this.data = [];
+	this.init();
+}
+
+TODO.prototype = {
+	init: function(){
+		this.wrapper = document.getElementById("wrapper");
+		this.wrapper.addEventListener("click", this);
+	},
+
+	addItem : function(txt){
+		this.data.push({todoTxt: txt, status: "NOTDONE"});
+		var itemWrapper = document.createElement("DIV");
+		itemWrapper.innerHTML = this.getHTML(this.data.length - 1, txt);
+		this.wrapper.appendChild(itemWrapper.childNodes[0]);
+		this.updateCounter();
+	},
+
+	deleteItems : function(){
+		var items = this.wrapper.querySelectorAll("input:checked");
+		for(var i=0; i<items.length; i++){
+			var item = items[i].parentNode;
+			var index = parseInt(item.getAttribute("index"));
+			this.data.splice(index, 1);
+			item.parentNode.removeChild(item);
+		}
+		this.updateIndex();
+		this.updateCounter();
+	},
+
+	getHTML: function(index, todoTxt){
+		return "<div index='" + index + "'><input type='checkbox'></input><span>" + todoTxt + "</span></div>";  
+	}, 
+
+	handleEvent: function(e){
+		var target = e.target;
+		if(target.type == "checkbox"){
+			var itemWrapper = target.parentNode;
+			var index = parseInt(itemWrapper.getAttribute("index"));
+			var itemData = this.data[index];
+			itemData.status = target.checked ? "DONE" : "NOTDONE";
+			this.updateCounter();
+		}
+	},
+
+	updateCounter: function(){
+		var counter = document.getElementById("doneDiv");
+		var doneList = this.data.filter(function(item) { return item.status == "DONE" });
+		counter.childNodes[1].innerHTML = doneList.length;
+		var pending = document.getElementById("pendingDiv");
+		pending.childNodes[1].innerHTML = this.data.length - doneList.length;
+	},
+
+	updateIndex: function(){ //Update index of remaining rows
+		var items = this.wrapper.childNodes;
+		for(var i=0; i<items.length; i++){
+			items[i].setAttribute("index", i);
+		}
+	}
+
+}
+
+var todoIns;
+function addItem(){
+	if(!todoIns)
+		todoIns = new TODO();
+	var txt = document.getElementById("todoTxt");
+	todoIns.addItem(txt.value);
+}
+
+function removeItem(){
+	todoIns && todoIns.deleteItems();
+}
+
+function initApp(){
+	var addBtn = document.getElementById("addBtn");
+	addBtn.addEventListener("click", addItem);
+
+	var deleteBtn = document.getElementById("deleteBtn");
+	deleteBtn.addEventListener("click", removeItem);
+}
+
+</script>
+<style type="text/css">
+	#wrapper{
+		margin: 10px;
+
+	}
+</style>
+</head>
+<body onload="initApp()">
+<input id="todoTxt"></input>
+<button id="addBtn">Add Item</button>
+<button id="deleteBtn">Delete Items</button>
+<div id="wrapper"></div>
+<div id="doneDiv">Done List - <span>0</span></div>
+<div id="pendingDiv">Pending List - <span>0</span></div>
+</body>
+</html>
